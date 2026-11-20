@@ -1,0 +1,5 @@
+driverID,startPoint,Destination,departureTime,availableSeats
+D1,L4,L11, 8:00 AM, 3
+D2,L5,L12, 9:30 AM, 2
+D3,L6,L9, 10:15 AM, 4
+D4,L7,L10, 11:00 AM, 1
