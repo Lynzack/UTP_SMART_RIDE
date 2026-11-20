@@ -1,5 +1,5 @@
-driverID,startPoint,Destination,departureTime,availableSeats
-D1,L4,L11, 8:00 AM, 3
-D2,L5,L12, 9:30 AM, 2
-D3,L6,L9, 10:15 AM, 4
-D4,L7,L10, 11:00 AM, 1
+driverID,UserID,startPoint,Destination,Date,departureTime,availableSeats,Contribution, Notes
+D1,U1,L4,L11,2026-11-27,8:00 AM, 3,3
+D2,U2,L5,L12,2026-11-27, 9:30 AM, 2,2
+D3,U3,L6,L9,2026-11-27, 10:15 AM, 4,4
+D4,U4,L7,L10,2026-11-27, 11:00 AM, 1,1
