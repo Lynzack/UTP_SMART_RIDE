@@ -4,7 +4,7 @@ from OSRM import (
     get_route,
     get_carpool_route
 )
-
+from fuzzy_logic import calculate_compatibility, evaluate_rules, fuzzify, D_range, T_range, Percent_range, C_range, D_sets, T_sets, Percent_sets, C_sets, rules
 from route_compatibility import calculate_route_compatibility
 from map import visualize_route
 
@@ -39,6 +39,12 @@ def main():
     result = calculate_route_compatibility(
         driver,
         passenger
+    )
+
+    score = calculate_compatibility(
+        result['detour_distance'],
+        result['detour_time'],
+        result['detour_percentage']
     )
 
     # 6. Display results
@@ -78,6 +84,50 @@ def main():
         f"Detour Percentage: "
         f"{result['detour_percentage']:.2f}%"
     )
+
+    print(
+        f"Compatibility Score: "
+        f"{score:.2f}/100"
+    )
+
+    test_cases = [
+        {
+        "name": "Good Distance, Bad Time",
+        "distance": 1,
+        "time": 14,
+        "percentage": 30
+    },
+    {
+        "name": "Bad Distance, Good Time",
+        "distance": 4.5,
+        "time": 3,
+        "percentage": 350
+    },
+    {
+        "name": "Boundary Time",
+        "distance": 2,
+        "time": 15,
+        "percentage": 80
+    }
+    ]
+
+    print("\n--- FUZZY LOGIC TESTING ---")
+
+    for case in test_cases:
+
+        score = calculate_compatibility(
+            case["distance"],
+            case["time"],
+            case["percentage"]
+        )
+       
+
+        print(f"\nScenario: {case['name']}")
+        print(f"Distance: {case['distance']} km")
+        print(f"Additional Time: {case['time']} minutes")
+        print(f"Detour Percentage: {case['percentage']}%")
+        print(f"Compatibility Score: {score:.2f}/100")
+
 
 
 if __name__ == "__main__":
