@@ -1,0 +1,124 @@
+{
+    "status": "success",
+    "totalDrivers": 10,
+    "totalPassengers": 20,
+    "totalAssigned": 11,
+    "totalUnassigned": 9,
+    "assignments": [
+        {
+            "driverID": "D1",
+            "availableSeats": 3,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P1",
+                    "compatibility": 86.14
+                },
+                {
+                    "passengerID": "P5",
+                    "compatibility": 85.87
+                }
+            ]
+        },
+        {
+            "driverID": "D2",
+            "availableSeats": 2,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P12",
+                    "compatibility": 83.46
+                }
+            ]
+        },
+        {
+            "driverID": "D3",
+            "availableSeats": 4,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P7",
+                    "compatibility": 86.39
+                },
+                {
+                    "passengerID": "P17",
+                    "compatibility": 85.15
+                }
+            ]
+        },
+        {
+            "driverID": "D4",
+            "availableSeats": 1,
+            "assignedPassengers": []
+        },
+        {
+            "driverID": "D5",
+            "availableSeats": 3,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P15",
+                    "compatibility": 70.58
+                }
+            ]
+        },
+        {
+            "driverID": "D6",
+            "availableSeats": 2,
+            "assignedPassengers": []
+        },
+        {
+            "driverID": "D7",
+            "availableSeats": 4,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P13",
+                    "compatibility": 74.09
+                },
+                {
+                    "passengerID": "P20",
+                    "compatibility": 62.16
+                }
+            ]
+        },
+        {
+            "driverID": "D8",
+            "availableSeats": 3,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P14",
+                    "compatibility": 86.27
+                }
+            ]
+        },
+        {
+            "driverID": "D9",
+            "availableSeats": 2,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P9",
+                    "compatibility": 87.0
+                }
+            ]
+        },
+        {
+            "driverID": "D10",
+            "availableSeats": 3,
+            "assignedPassengers": [
+                {
+                    "passengerID": "P10",
+                    "compatibility": 87.0
+                }
+            ]
+        }
+    ],
+    "unassignedPassengers": [
+        "P2",
+        "P3",
+        "P4",
+        "P6",
+        "P8",
+        "P11",
+        "P16",
+        "P18",
+        "P19"
+    ],
+    "bestFitness": 22905.1,
+    "generations": 99
+}
