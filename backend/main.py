@@ -1,134 +1,134 @@
-from OSRM import (
-    get_driver,
-    get_passenger,
-    get_route,
-    get_carpool_route
-)
-from fuzzy_logic import calculate_compatibility, evaluate_rules, fuzzify, D_range, T_range, Percent_range, C_range, D_sets, T_sets, Percent_sets, C_sets, rules
-from route_compatibility import calculate_route_compatibility
-from map import visualize_route
+from OSRM import get_all_drivers, get_all_passengers
+from compatibility_matrix import generate_compatibility_matrix
+from GA import run_evolution, repair_genome
+from pathlib import Path
+import json
 
 
-def main():
+min_compatibility = 60
 
-    # 1. Retrieve driver and passenger information
-    driver = get_driver("D1")
-    passenger = get_passenger("P2")
+def prepare_results(best_genome, all_drivers, all_passengers, matrix):
 
-    # 2. Calculate original driver route
-    original_route = get_route(
-        driver["startPoint"],
-        driver["Destination"]
-    )
+    assignments = []
+    unassigned = []
 
-    # 3. Calculate alternative carpool route
-    carpool_route = get_carpool_route(
-        driver,
-        passenger
-    )
+    # Go through every driver
+    for driver_index, driver in enumerate(all_drivers, start=1):
 
-    # 4. Visualize both routes
-    visualize_route(
-        driver,
-        passenger,
-        original_route,
-        carpool_route
-    )
+        assigned_passengers = []
 
-    # 5. Calculate route compatibility
-    result = calculate_route_compatibility(
-        driver,
-        passenger
-    )
+        # Find passengers assigned to this driver
+        for passenger_index, assigned_driver in enumerate(best_genome):
 
-    score = calculate_compatibility(
-        result['detour_distance'],
-        result['detour_time'],
-        result['detour_percentage']
-    )
+            if assigned_driver != driver_index:
+                continue
 
-    # 6. Display results
-    print("\n--- ROUTE COMPARISON ---")
+            score = matrix[driver_index - 1][passenger_index]
 
-    print(
-        f"Original Distance: "
-        f"{original_route['distance_km']:.2f} km"
-    )
+            if score >= min_compatibility:
 
-    print(
-        f"Carpool Distance: "
-        f"{carpool_route['distance_km']:.2f} km"
-    )
+                assigned_passengers.append({
+                    "passengerID": all_passengers[passenger_index]["passengerID"],
+                    "compatibility": round(score, 2)
+                })
 
-    print(
-        f"Additional Distance: "
-        f"{result['detour_distance']:.2f} km"
-    )
+        assignments.append({
+            "driverID": driver["driverID"],
+            "availableSeats": driver["availableSeats"],
+            "assignedPassengers": assigned_passengers
+        })
 
-    print(
-        f"\nOriginal Time: "
-        f"{original_route['duration_min']:.2f} minutes"
-    )
-
-    print(
-        f"Carpool Time: "
-        f"{carpool_route['duration_min']:.2f} minutes"
-    )
-
-    print(
-        f"Additional Time: "
-        f"{result['detour_time']:.2f} minutes"
-    )
-
-    print(
-        f"Detour Percentage: "
-        f"{result['detour_percentage']:.2f}%"
-    )
-
-    print(
-        f"Compatibility Score: "
-        f"{score:.2f}/100"
-    )
-
-    test_cases = [
-        {
-        "name": "Good Distance, Bad Time",
-        "distance": 1,
-        "time": 14,
-        "percentage": 30
-    },
-    {
-        "name": "Bad Distance, Good Time",
-        "distance": 4.5,
-        "time": 3,
-        "percentage": 350
-    },
-    {
-        "name": "Boundary Time",
-        "distance": 2,
-        "time": 15,
-        "percentage": 80
-    }
+    # Identify assigned passengers
+    assigned_ids = [
+        passenger["passengerID"]
+        for driver in assignments
+        for passenger in driver["assignedPassengers"]
     ]
 
-    print("\n--- FUZZY LOGIC TESTING ---")
+    # Identify unassigned passengers
+    for passenger in all_passengers:
 
-    for case in test_cases:
+        if passenger["passengerID"] not in assigned_ids:
+            unassigned.append(passenger["passengerID"])
 
-        score = calculate_compatibility(
-            case["distance"],
-            case["time"],
-            case["percentage"]
-        )
-       
+    return {
+        "status": "success",
+        "totalDrivers": len(all_drivers),
+        "totalPassengers": len(all_passengers),
+        "totalAssigned": len(assigned_ids),
+        "totalUnassigned": len(unassigned),
+        "assignments": assignments,
+        "unassignedPassengers": unassigned
+    }
 
-        print(f"\nScenario: {case['name']}")
-        print(f"Distance: {case['distance']} km")
-        print(f"Additional Time: {case['time']} minutes")
-        print(f"Detour Percentage: {case['percentage']}%")
-        print(f"Compatibility Score: {score:.2f}/100")
+    
+def main():
 
+    # Step 1: Retrieve drivers and passengers
+    all_drivers = get_all_drivers()
+    all_passengers = get_all_passengers()
 
+    # Step 2: Generate compatibility matrix
+    print("Generating compatibility matrix...")
+
+    matrix = generate_compatibility_matrix()
+
+    # Step 3: Prepare driver information for GA
+    drivers = {
+        index: {
+            "available_seats": driver["availableSeats"]
+        }
+        for index, driver in enumerate(all_drivers, start=1)
+    }
+
+    # Step 4: Run Genetic Algorithm
+    print("Running Genetic Algorithm...")
+
+    best_population, generations = run_evolution(
+        population_size=30,
+        num_drivers=len(all_drivers),
+        num_passengers=len(all_passengers),
+        drivers=drivers,
+        compatibility_matrix=matrix,
+        fitness_limit=float("inf"),
+        generation_limit=100,
+        mutation_chance=0.5
+    )
+
+    # Step 5: Retrieve best genome
+    best_genome, best_fitness = best_population[0]
+
+    # Step 6: Repair best genome
+    repaired = repair_genome(
+        best_genome,
+        drivers,
+        matrix
+    )
+
+    # Step 7: Prepare final results
+    results = prepare_results(
+        repaired,
+        all_drivers,
+        all_passengers,
+        matrix
+    )
+
+    # Add GA information
+    results["bestFitness"] = round(best_fitness, 2)
+    results["generations"] = generations
+
+    # Step 8: Export JSON
+    output_path = Path(__file__).resolve().parent / "result.json"
+
+    with open(output_path, "w") as file:
+        json.dump(results, file, indent=4)
+
+    print("\n--- MATCHING RESULTS ---")
+    print("Total assigned:", results["totalAssigned"])
+    print("Total unassigned:", results["totalUnassigned"])
+    print("Best fitness:", results["bestFitness"])
+
+    print(f"\nResults exported to: {output_path}")
 
 if __name__ == "__main__":
     main()

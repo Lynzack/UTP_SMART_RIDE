@@ -1,15 +1,31 @@
 import pandas as pd
 import requests
+from pathlib import Path
+from eligibility import is_eligible
 
-from map import visualize_route
+# from map import visualize_route
 
 # =================================
 # 1. LOAD DATASET
 # =================================
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_DIR = BASE_DIR.parent / "dataset"
 
-locations = pd.read_csv("dataset/location.csv")
-drivers = pd.read_csv("dataset/driver.csv")
-passengers = pd.read_csv("dataset/passengers.csv")
+locations = pd.read_csv(
+    DATASET_DIR / "location.csv",
+    dtype={"locationID": str}
+)
+
+drivers = pd.read_csv(
+    DATASET_DIR / "driver.csv",
+    dtype={"driverID": str, "UserID": str}
+)
+
+passengers = pd.read_csv(
+    DATASET_DIR / "passengers.csv",
+    dtype={"passengerID": str, "UserID": str}
+)
+
 
 # =================================
 # 2. RETRIEVE LOCATION COORDINATES
@@ -18,7 +34,7 @@ passengers = pd.read_csv("dataset/passengers.csv")
 def get_coordinates(location_id):
 
     location = locations[
-locations["locationID"] == location_id
+        locations["locationID"] == location_id
     ]
 
     if location.empty:
@@ -52,9 +68,21 @@ def get_driver(driver_id):
 
     return {
         "driverID": driver_id,
+        "UserID": row["UserID"],
         "startPoint": origin,
-        "Destination": destination
+        "Destination": destination,
+        "Date": row["Date"],
+        "departureTime": row["departureTime"],
+        "availableSeats": int(row["availableSeats"])
     }
+
+def get_all_drivers ():
+    driver_ids = drivers["driverID"].tolist()
+
+    return [
+        get_driver(driver_id)
+        for driver_id in driver_ids
+    ]
 
 
 # =================================
@@ -77,9 +105,19 @@ def get_passenger(passenger_id):
 
     return {
         "passengerID": passenger_id,
+        "UserID": row["UserID"],
         "startPoint": origin,
-        "Destination": destination
+        "Destination": destination,
+        "Date": row["Date"],
+        "preferredTime": row["preferredTime"]
     }
+
+def get_all_passengers ():
+    passenger_ids = passengers["passengerID"].tolist()
+    return [
+        get_passenger(passenger_id)
+        for passenger_id in passenger_ids
+    ]
 
 
 # =================================
