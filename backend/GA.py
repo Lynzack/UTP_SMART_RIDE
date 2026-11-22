@@ -122,31 +122,6 @@ def repair_genome(genome, drivers, compatibility_matrix):
     return repaired_genome
 
 
-    # # Check seat capacity
-    # for driver_id, count in passenger_count.items():
-    #     if count > drivers[driver_id]["available_seats"]:
-    #         return 0
-
-    # # Calculate total compatibility
-    # for passenger_index, assigned_driver in enumerate(genome):
-
-    #     if assigned_driver == 0:
-    #         continue
-
-    #     score = compatibility_matrix[assigned_driver - 1][passenger_index]
-
-    #     #reject low compatibility assignments
-    #     if score < min_compatibility :
-    #         return 0
-
-    #     total_score += score
-    #     assigned_count += 1
-
-    # coverage_bonus = assigned_count * (100 * len(genome) + 1)
-
-    # return coverage_bonus + total_score
-     
-
 
 def evaluate_population(population, drivers, compatibility_matrix):
     results = []
@@ -252,6 +227,19 @@ def run_evolution(
 
             child1, child2 = single_point_crossover(
                 parent1, parent2
+            )
+
+            # Apply mutation
+            child1 = mutation(
+                child1,
+                num_drivers=num_drivers,
+                probability=mutation_chance
+            )
+
+            child2 = mutation(
+                child2,
+                num_drivers=num_drivers,
+                probability=mutation_chance
             )
 
             # Repair offspring after crossover and mutation
