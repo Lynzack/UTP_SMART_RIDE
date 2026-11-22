@@ -173,7 +173,64 @@ def get_carpool_route(driver, passenger):
 
     url = f"{base_url}/route/v1/driving/{coordinate_string}"
 
-    response = requests.get(url, params={"geometries": "geojson"})
+    response = requests.get(
+        url,
+        params={
+            "overview": "full",
+            "geometries": "geojson"
+        }
+    )
+
+    response.raise_for_status()
+    data = response.json()
+
+    if data["code"] != "Ok":
+        raise ValueError(f"OSRM error: {data['code']}")
+
+    route = data["routes"][0]
+
+    return {
+        "distance_km": route["distance"] / 1000,
+        "duration_min": route["duration"] / 60,
+        "geometry": route["geometry"]["coordinates"]
+    }
+
+def get_multi_passenger_route(driver, passengers):
+
+    coordinates = [
+        driver["startPoint"]
+    ]
+
+    for passenger in passengers:
+        coordinates.append(passenger["startPoint"])
+        coordinates.append(passenger["Destination"])
+
+    coordinates.append(driver["Destination"])
+
+    # Calculate the complete route using OSRM
+    # We will implement this part next.
+
+def get_multi_stop_route(coordinates):
+
+    base_url = "https://router.project-osrm.org"
+
+    coordinate_string = ";".join(
+        f"{lon},{lat}"
+        for lon, lat in coordinates
+    )
+
+    url = f"{base_url}/route/v1/driving/{coordinate_string}"
+
+    response = requests.get(
+        url,
+        params={
+            "overview": "full",
+            "geometries": "geojson"
+        }
+    )
+
+    response.raise_for_status()
+
     data = response.json()
 
     if data["code"] != "Ok":
@@ -188,3 +245,35 @@ def get_carpool_route(driver, passenger):
     }
 
 
+def get_travel_time_matrix(coordinates):
+
+    base_url = "https://router.project-osrm.org"
+
+    coordinate_string = ";".join(
+        f"{lon},{lat}"
+        for lon, lat in coordinates
+    )
+
+    url = f"{base_url}/table/v1/driving/{coordinate_string}"
+
+    response = requests.get(
+        url,
+        params={
+            "annotations": "duration"
+        }
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if data["code"] != "Ok":
+        raise ValueError(f"OSRM error: {data['code']}")
+
+    return [
+        [
+            duration / 60 if duration is not None else float("inf")
+            for duration in row
+        ]
+        for row in data["durations"]
+    ]

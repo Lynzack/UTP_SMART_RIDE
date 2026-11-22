@@ -1,64 +1,77 @@
 import folium
 
-def visualize_route(driver, passenger, driver_route, carpool_route):
 
-    start = driver["startPoint"]
 
+def visualize_optimized_route(driver, passengers, optimized_route):
+
+    driver_start = driver["startPoint"]
+    driver_destination = driver["Destination"]
+
+    # Create map
     route_map = folium.Map(
-        location=[start[1], start[0]],
+        location=[driver_start[1], driver_start[0]],
         zoom_start=13
     )
 
     # Driver origin
     folium.Marker(
-        [start[1], start[0]],
+        [driver_start[1], driver_start[0]],
         popup="Driver Origin",
         icon=folium.Icon(color="green")
     ).add_to(route_map)
 
     # Driver destination
     folium.Marker(
-        [driver["Destination"][1], driver["Destination"][0]],
+        [driver_destination[1], driver_destination[0]],
         popup="Driver Destination",
         icon=folium.Icon(color="red")
     ).add_to(route_map)
 
-    # Passenger pickup
-    folium.Marker(
-        [passenger["startPoint"][1], passenger["startPoint"][0]],
-        popup="Passenger Pickup",
-        icon=folium.Icon(color="blue")
-    ).add_to(route_map)
+    # Passenger markers
+    for passenger in passengers:
 
-    # Passenger drop-off
-    folium.Marker(
-        [passenger["Destination"][1], passenger["Destination"][0]],
-        popup="Passenger Drop-off",
-        icon=folium.Icon(color="purple")
-    ).add_to(route_map)
+        passenger_id = passenger["passengerID"]
 
-    # Driver's original route
+        pickup = passenger["startPoint"]
+        dropoff = passenger["Destination"]
+
+        # Pickup marker
+        folium.Marker(
+            [pickup[1], pickup[0]],
+            popup=f"{passenger_id} Pickup",
+            icon=folium.Icon(color="blue")
+        ).add_to(route_map)
+
+        # Drop-off marker
+        folium.Marker(
+            [dropoff[1], dropoff[0]],
+            popup=f"{passenger_id} Drop-off",
+            icon=folium.Icon(color="purple")
+        ).add_to(route_map)
+
+    # Optimised carpool route
     route_coordinates = [
         (lat, lon)
-        for lon, lat in driver_route["geometry"]
+        for lon, lat in optimized_route["geometry"]
     ]
 
     folium.PolyLine(
         route_coordinates,
-        color="blue",
+        color="red",
         weight=5,
-        tooltip="Driver Original Route"
+        tooltip="Optimised Carpool Route"
     ).add_to(route_map)
 
-    folium.PolyLine(
-    [(lat, lon) for lon, lat in carpool_route["geometry"]],
-    color="red",
-    weight=5,
-    tooltip="Alternative Carpool Route"
-).add_to(route_map)
+    # Adjust map zoom
+    all_coordinates = route_coordinates + [
+        (driver_start[1], driver_start[0]),
+        (driver_destination[1], driver_destination[0])
+    ]
 
-    route_map.save("driver_route_map.html")
+    route_map.fit_bounds(all_coordinates)
 
-    print("Map saved successfully!")
+    route_map.save(
+        f"optimized_carpool_route_{driver['driverID']}.html"
+    )
 
-
+    print("Optimised carpool map saved successfully!")
