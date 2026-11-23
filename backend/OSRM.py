@@ -3,6 +3,44 @@ import requests
 from pathlib import Path
 from eligibility import is_eligible
 
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+session = requests.Session()
+
+retries = Retry(
+    total=3,
+    connect=3,
+    read=2,
+    backoff_factor=1,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET"]
+)
+
+adapter = HTTPAdapter(max_retries=retries)
+
+session.mount("https://", adapter)
+session.mount("http://", adapter)
+
+
+def osrm_request(url, params=None):
+
+    response = session.get(
+        url,
+        params=params,
+        timeout=(10, 30)
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if data.get("code") != "Ok":
+        raise ValueError(
+            f"OSRM error: {data.get('code')}"
+        )
+
+    return data
 # from map import visualize_route
 
 # =================================
@@ -143,7 +181,13 @@ def get_route(start, destination):
 )
     response.raise_for_status()
 
-    data = response.json()
+    data = osrm_request(
+        url,
+        params={
+            "overview": "full",
+            "geometries": "geojson"
+        }
+    )
 
     if data["code"] != "Ok":
         raise ValueError(f"OSRM error: {data['code']}")
@@ -182,7 +226,14 @@ def get_carpool_route(driver, passenger):
     )
 
     response.raise_for_status()
-    data = response.json()
+    
+    data = osrm_request(
+        url,
+        params={
+            "overview": "full",
+            "geometries": "geojson"
+        }
+    )
 
     if data["code"] != "Ok":
         raise ValueError(f"OSRM error: {data['code']}")
@@ -231,7 +282,13 @@ def get_multi_stop_route(coordinates):
 
     response.raise_for_status()
 
-    data = response.json()
+    data = osrm_request(
+        url,
+        params={
+            "overview": "full",
+            "geometries": "geojson"
+        }
+    )
 
     if data["code"] != "Ok":
         raise ValueError(f"OSRM error: {data['code']}")
@@ -247,6 +304,9 @@ def get_multi_stop_route(coordinates):
 
 def get_travel_time_matrix(coordinates):
 
+    if not coordinates or len(coordinates) < 2:
+        raise ValueError("At least two coordinates are required.")
+
     base_url = "https://router.project-osrm.org"
 
     coordinate_string = ";".join(
@@ -256,20 +316,18 @@ def get_travel_time_matrix(coordinates):
 
     url = f"{base_url}/table/v1/driving/{coordinate_string}"
 
-    response = requests.get(
-        url,
-        params={
-            "annotations": "duration"
-        }
-    )
+    # Correct parameters for OSRM Table API
+    params = {
+        "annotations": "duration"
+    }
 
-    response.raise_for_status()
+    # Send request only once
+    data = osrm_request(url, params=params)
 
-    data = response.json()
+    if "durations" not in data:
+        raise ValueError("OSRM did not return travel time matrix.")
 
-    if data["code"] != "Ok":
-        raise ValueError(f"OSRM error: {data['code']}")
-
+    # Convert seconds to minutes
     return [
         [
             duration / 60 if duration is not None else float("inf")
@@ -277,3 +335,4 @@ def get_travel_time_matrix(coordinates):
         ]
         for row in data["durations"]
     ]
+
