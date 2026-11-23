@@ -1,5 +1,5 @@
 from OSRM import get_all_drivers, get_all_passengers
-from compatibility_matrix import generate_compatibility_matrix
+from compatibility_matrix import  get_compatibility_matrix
 from GA import run_evolution, repair_genome
 from pathlib import Path
 import json
@@ -7,7 +7,7 @@ from route_optimizer import optimize_route
 from map import visualize_optimized_route
 
 
-min_compatibility = 60
+min_compatibility = 50
 
 def prepare_results(best_genome, all_drivers, all_passengers, matrix):
 
@@ -73,15 +73,18 @@ def main():
     # Step 2: Generate compatibility matrix
     print("Generating compatibility matrix...")
 
-    matrix = generate_compatibility_matrix()
+    
+
+    matrix = get_compatibility_matrix()
+   
 
     # Step 3: Prepare driver information for GA
-    drivers = {
-        index: {
-            "available_seats": driver["availableSeats"]
-        }
-        for index, driver in enumerate(all_drivers, start=1)
-    }
+    # drivers = {
+    #     index: {
+    #         "available_seats": driver["availableSeats"]
+    #     }
+    #     for index, driver in enumerate(all_drivers, start=1)
+    # }
 
     # Step 4: Run Genetic Algorithm
     print("Running Genetic Algorithm...")
@@ -105,7 +108,8 @@ def main():
             population_size=30,
             num_drivers=len(all_drivers),
             num_passengers=len(all_passengers),
-            drivers=drivers,
+            drivers=all_drivers,
+            passengers = all_passengers,
             compatibility_matrix=matrix,
             fitness_limit=float("inf"),
             generation_limit=100,
@@ -114,7 +118,7 @@ def main():
 
         best_genome, best_fitness = best_population[0]
         
-        repaired = repair_genome(best_genome, drivers, matrix)
+        repaired = repair_genome(best_genome, all_drivers, matrix,all_passengers)
 
         assigned = sum(1 for gene in repaired if gene != 0)
 
@@ -138,8 +142,9 @@ def main():
 
     repaired = repair_genome(
         best_genome,
-        drivers,
-        matrix
+        all_drivers,
+        matrix,
+        all_passengers
     )
 
     # Step 6: Optimise routes for each driver
@@ -223,6 +228,8 @@ def main():
     print("Best fitness:", results["bestFitness"])
 
     print(f"\nResults exported to: {output_path}")
+    print("Original Best Genome:", best_genome)
+    print("Repaired Genome:", repaired)
 
 if __name__ == "__main__":
     main()

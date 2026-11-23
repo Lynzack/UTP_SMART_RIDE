@@ -10,11 +10,11 @@ def trimf(x, a, b, c):
     return np.minimum(left, right)
 
 
-D_range, T_range, Percent_range , C_range= np.linspace(0, 5, 51), np.linspace(0, 15, 151), np.linspace(0, 400, 401), np.linspace(0, 100, 101)
+D_range, T_range, Percent_range , C_range= np.linspace(0, 5, 51), np.linspace(0, 10, 101), np.linspace(0, 400, 401), np.linspace(0, 100, 101)
 
 # Try this: change the 26 in "hot" to 20, then rerun Question 3 and compare.
 D_sets = {"low": trimf(D_range, 0, 0, 1.5), "medium": trimf(D_range, 0.5, 2.5, 4.5), "high": trimf(D_range, 3.5, 5, 5)}
-T_sets = {"low": trimf(T_range, 0, 0, 6), "medium": trimf(T_range, 4, 7.5, 11), "high": trimf(T_range, 9, 15, 15)}
+T_sets = {"low": trimf(T_range, 0, 0, 3), "medium": trimf(T_range, 1, 5, 9), "high": trimf(T_range, 7, 10, 10)}
 Percent_sets = {"low": trimf(Percent_range, 0, 0, 100), "medium": trimf(Percent_range, 50, 200, 350), "high": trimf(Percent_range, 300, 400, 400)}
 C_sets = {"low": trimf(C_range, 0, 0, 40), "medium": trimf(C_range, 20, 50, 80), "high": trimf(C_range, 60, 100, 100)}  
 

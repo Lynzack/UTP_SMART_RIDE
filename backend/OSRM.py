@@ -48,6 +48,7 @@ def osrm_request(url, params=None):
 # =================================
 BASE_DIR = Path(__file__).resolve().parent
 DATASET_DIR = BASE_DIR.parent / "dataset"
+TEST_DIR1 = DATASET_DIR / "Scenario6"
 
 locations = pd.read_csv(
     DATASET_DIR / "location.csv",

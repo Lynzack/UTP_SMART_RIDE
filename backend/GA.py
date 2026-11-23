@@ -1,10 +1,11 @@
 
 from random import choices, randint, random, randrange, choice
 from typing import  List, Tuple
+from eligibility import is_eligible
 
 Genome = List[int]  
 Population = List[Genome]
-min_compatibility = 60
+min_compatibility = 50
 
 
 def generate_genome(num_passengers : int, num_drivers : int ) -> Genome: # generate one random solution
@@ -15,25 +16,45 @@ def generate_population(
     num_drivers,
     num_passengers,
     drivers,
+    passengers,
     compatibility_matrix
 ):
     population = []
 
     for _ in range(size):
 
+        # genome = generate_genome(
+        #     num_passengers,
+        #     num_drivers
+        # )
+
+        # genome = repair_genome(
+        #     genome,
+        #     drivers,
+        #     compatibility_matrix,
+        #     passengers,
+        # )
         genome = generate_genome(
             num_passengers,
             num_drivers
         )
 
+        original_genome = genome.copy()
+
         genome = repair_genome(
             genome,
             drivers,
-            compatibility_matrix
+            compatibility_matrix,
+            passengers
         )
+
+        if len(population) < 10:
+            print("Original:", original_genome)
+            print("Repaired:", genome)
 
         population.append(genome)
 
+             
     return population
 
 
@@ -43,9 +64,13 @@ def fitness(genome: Genome, drivers, compatibility_matrix) :
     assigned_count = 0
     
 
+    # driver_assignments = {
+    #     driver_id :[]
+    #     for driver_id in drivers
+    # }
     driver_assignments = {
-        driver_id :[]
-        for driver_id in drivers
+        driver_index + 1: []
+        for driver_index in range(len(drivers))
     }
 
     # Step 1: Collect valid assignments
@@ -69,7 +94,8 @@ def fitness(genome: Genome, drivers, compatibility_matrix) :
         # Prioritize passengers with higher compatibility
         assignments.sort(reverse=True)
 
-        available_seats = drivers[driver_id]["available_seats"]
+        # available_seats = drivers[driver_id]["available_seats"]
+        available_seats = drivers[driver_id - 1]["availableSeats"]
 
         # Keep only passengers within seat capacity
         valid_assignments = assignments[:available_seats]
@@ -83,23 +109,73 @@ def fitness(genome: Genome, drivers, compatibility_matrix) :
 
     return coverage_bonus + total_score
 
-def repair_genome(genome, drivers, compatibility_matrix):
+# def repair_genome(genome, drivers, compatibility_matrix):
+
+#     repaired_genome = genome.copy()
+
+#     # Step 1: Remove incompatible assignments
+#     for passenger_index, driver_id in enumerate(repaired_genome):
+
+#         if driver_id == 0:
+#             continue
+
+#         score = compatibility_matrix[driver_id - 1][passenger_index]
+
+#         if score < min_compatibility:
+#             repaired_genome[passenger_index] = 0
+
+#     # Step 2: Check driver seat capacities
+#     # for driver_id, driver in drivers.items():
+#     for driver_id, driver in enumerate(drivers, start=1):
+
+#         assigned_passengers = [
+#             index
+#             for index, assigned_driver in enumerate(repaired_genome)
+#             if assigned_driver == driver_id
+#         ]
+
+#         # Sort passengers by compatibility (highest first)
+#         assigned_passengers.sort(
+#             key=lambda index: compatibility_matrix[driver_id - 1][index],
+#             reverse=True
+#         )
+
+#         # Remove passengers exceeding available seats
+#         # available_seats = driver["available_seats"]
+#         available_seats = driver["availableSeats"]
+
+#         for passenger_index in assigned_passengers[available_seats:]:
+#             repaired_genome[passenger_index] = 0
+
+#     return repaired_genome
+
+
+
+
+def repair_genome(genome, drivers, compatibility_matrix, passengers):
 
     repaired_genome = genome.copy()
+    num_drivers = len(drivers)
 
-    # Step 1: Remove incompatible assignments
+    # Step 1: Remove incompatible or ineligible assignments
     for passenger_index, driver_id in enumerate(repaired_genome):
 
         if driver_id == 0:
             continue
 
+        driver = drivers[driver_id - 1]
+        passenger = passengers[passenger_index]
+
         score = compatibility_matrix[driver_id - 1][passenger_index]
 
-        if score < min_compatibility:
+        if (
+            score < min_compatibility
+            or not is_eligible(driver, passenger)
+        ):
             repaired_genome[passenger_index] = 0
 
     # Step 2: Check driver seat capacities
-    for driver_id, driver in drivers.items():
+    for driver_id, driver in enumerate(drivers, start=1):
 
         assigned_passengers = [
             index
@@ -107,20 +183,82 @@ def repair_genome(genome, drivers, compatibility_matrix):
             if assigned_driver == driver_id
         ]
 
-        # Sort passengers by compatibility (highest first)
         assigned_passengers.sort(
             key=lambda index: compatibility_matrix[driver_id - 1][index],
             reverse=True
         )
 
-        # Remove passengers exceeding available seats
-        available_seats = driver["available_seats"]
+        available_seats = driver["availableSeats"]
 
-        for passenger_index in assigned_passengers[available_seats:]:
+        overflow_passengers = assigned_passengers[available_seats:]
+
+        for passenger_index in overflow_passengers:
             repaired_genome[passenger_index] = 0
 
-    return repaired_genome
+    # Step 3: Calculate current driver seat usage
+    driver_loads = {
+        driver_id: repaired_genome.count(driver_id)
+        for driver_id in range(1, num_drivers + 1)
+    }
 
+    # Step 4: Reassign unassigned passengers
+        # Step 4: Reassign unassigned passengers
+    unassigned_indices = [
+        index
+        for index, driver_id in enumerate(repaired_genome)
+        if driver_id == 0
+    ]
+
+    passenger_options = {}
+
+    # Find suitable drivers for each unassigned passenger
+    for passenger_index in unassigned_indices:
+
+        passenger = passengers[passenger_index]
+        suitable_drivers = []
+
+        for driver_index, driver in enumerate(drivers):
+
+            alternative_id = driver_index + 1
+
+            score = compatibility_matrix[driver_index][passenger_index]
+
+            if score < min_compatibility:
+                continue
+
+            if not is_eligible(driver, passenger):
+                continue
+
+            suitable_drivers.append((alternative_id, score))
+
+        passenger_options[passenger_index] = suitable_drivers
+
+    # Prioritise passengers with the fewest suitable drivers
+    unassigned_indices.sort(
+        key=lambda index: len(passenger_options[index])
+    )
+
+    # Assign passengers to the best available driver
+    for passenger_index in unassigned_indices:
+
+        alternative_drivers = passenger_options[passenger_index]
+
+        alternative_drivers.sort(
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        for alternative_id, score in alternative_drivers:
+
+            if driver_loads[alternative_id] < drivers[alternative_id - 1]["availableSeats"]:
+
+                repaired_genome[passenger_index] = alternative_id
+
+                driver_loads[alternative_id] += 1
+
+                break
+        
+    return repaired_genome
 
 
 def evaluate_population(population, drivers, compatibility_matrix):
@@ -188,6 +326,7 @@ def run_evolution(
     num_drivers,
     num_passengers,
     drivers,
+    passengers,
     compatibility_matrix,
     fitness_limit=float("inf"),
     generation_limit=100,
@@ -198,8 +337,13 @@ def run_evolution(
         num_drivers,
         num_passengers,
         drivers,
+        passengers,
         compatibility_matrix
     )
+    unique_genomes = len(set(tuple(g) for g in population))
+
+    print("Initial unique genomes:", unique_genomes)
+    print("Initial population size:", len(population))  
 
     for generation in range(generation_limit):
 
@@ -246,13 +390,15 @@ def run_evolution(
             child1 = repair_genome(
                 child1,
                 drivers,
-                compatibility_matrix
+                compatibility_matrix,
+                passengers
             )
 
             child2 = repair_genome(
                 child2,
                 drivers,
-                compatibility_matrix
+                compatibility_matrix,
+                passengers
             )
 
 
@@ -260,6 +406,13 @@ def run_evolution(
 
         # Keep population size consistent
         population = next_generation[:population_size]
+        unique_genomes = len(set(tuple(g) for g in population))
+
+        if generation % 50 == 0:
+            print(
+                f"Generation {generation}: "
+                f"{unique_genomes} unique genomes"
+            )
 
     # Final evaluation
     evaluated_population = evaluate_population(
