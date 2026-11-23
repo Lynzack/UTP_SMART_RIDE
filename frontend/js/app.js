@@ -110,12 +110,35 @@
     $("result-status").textContent = "Latest backend results";
     $("result-status").classList.add("ready");
 
-    const unassignedIds = Array.isArray(results.unassignedPassengers)
-      ? results.unassignedPassengers : [];
-    $("unassigned-list").innerHTML = unassignedIds.length
-      ? unassignedIds.map(id => `<span class="unassigned-chip">${escapeHTML(id)}</span>`).join("")
-      : `<span class="muted">All passengers in this result were assigned.</span>`;
+    // const unassignedIds = Array.isArray(results.unassignedPassengers)
+    //   ? results.unassignedPassengers : [];
+    // $("unassigned-list").innerHTML = unassignedIds.length
+    //   ? unassignedIds.map(id => `<span class="unassigned-chip">${escapeHTML(id)}</span>`).join("")
+    //   : `<span class="muted">All passengers in this result were assigned.</span>`;
 
+    const unassignedAnalysis = Array.isArray(results.unassignedAnalysis)
+      ? results.unassignedAnalysis : [];
+
+    $("unassigned-list").innerHTML = unassignedAnalysis.length
+      ? unassignedAnalysis.map(item => `
+          <div class="unassigned-item">
+            <div class="unassigned-item-header">
+              <strong>${escapeHTML(item.passengerID)}</strong>
+              <span class="unassigned-badge">Unassigned</span>
+            </div>
+
+            <p>${escapeHTML(item.reason)}</p>
+
+            <small>
+              Eligible drivers: ${
+                item.eligibleDrivers?.length
+                  ? item.eligibleDrivers.map(escapeHTML).join(", ")
+                  : "None"
+              }
+            </small>
+          </div>
+        `).join("")
+      : `<span class="muted">All passengers in this result were assigned.</span>`;
     renderAssignmentTable();
   }
 

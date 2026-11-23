@@ -1,11 +1,11 @@
-from OSRM import get_all_drivers, get_all_passengers
+from OSRM import get_all_drivers, get_all_passengers, get_route
 from compatibility_matrix import  get_compatibility_matrix
 from GA import run_evolution, repair_genome
 from pathlib import Path
 import json
 from route_optimizer import optimize_route
 from map import visualize_optimized_route
-
+from unassigned_analysis import analyse_unassigned_passengers
 
 min_compatibility = 50
 
@@ -198,6 +198,14 @@ def main():
     # Step 7: Prepare final results
     results = prepare_results(
         repaired,
+        all_drivers,
+        all_passengers,
+        matrix
+    )
+
+    # Analyse unassigned passengers
+    results["unassignedAnalysis"] = analyse_unassigned_passengers(
+        results,
         all_drivers,
         all_passengers,
         matrix
