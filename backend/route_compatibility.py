@@ -15,6 +15,14 @@ def calculate_route_compatibility(driver, passenger):
     else:
         detour_percentage = 0
 
+    print("\n========== ROUTE DEBUG ==========")
+    print("Driver:", driver["driverID"])
+    print("Passenger:", passenger["passengerID"])
+    print("Detour Distance:", detour_distance)
+    print("Detour Time:", detour_time)
+    print("Detour Percentage:", detour_percentage)
+
+
 
 
     return {
@@ -22,3 +30,4 @@ def calculate_route_compatibility(driver, passenger):
         "detour_time": detour_time,
         "detour_percentage": detour_percentage
     }
+

@@ -77,28 +77,9 @@ def main():
 
     matrix = get_compatibility_matrix()
    
-
-    # Step 3: Prepare driver information for GA
-    # drivers = {
-    #     index: {
-    #         "available_seats": driver["availableSeats"]
-    #     }
-    #     for index, driver in enumerate(all_drivers, start=1)
-    # }
-
-    # Step 4: Run Genetic Algorithm
     print("Running Genetic Algorithm...")
 
-    # best_population, generations = run_evolution(
-    #     population_size=30,
-    #     num_drivers=len(all_drivers),
-    #     num_passengers=len(all_passengers),
-    #     drivers=drivers,
-    #     compatibility_matrix=matrix,
-    #     fitness_limit=float("inf"),
-    #     generation_limit=100,
-    #     mutation_chance=0.5
-    # )
+
     best_overall = None
     best_overall_fitness = -1
     best_generations = 0
@@ -167,17 +148,24 @@ def main():
         if not assigned_passengers:
             continue
 
+        # Get driver's original route (without passengers)
+        original_route = get_route(
+            driver["startPoint"],
+            driver["Destination"]
+        )
+
         # Optimise pickup and drop-off sequence
         optimized_route = optimize_route(
             driver,
             assigned_passengers
         )
 
-        # Generate route map
-        visualize_optimized_route(
+        # Generate route map and retrieve filename
+        map_filename = visualize_optimized_route(
             driver,
             assigned_passengers,
-            optimized_route
+            optimized_route,
+            original_route
         )
 
         optimized_routes.append({
@@ -192,11 +180,19 @@ def main():
             ),
             "totalDuration": round(
                 optimized_route["total_time_min"], 2
-            )
+            ),
+            "originalDistance": round(
+                original_route["distance_km"], 2
+            ),
+            "originalDuration": round(
+                original_route["duration_min"], 2
+            ),
+            "mapFile": map_filename
         })
 
         print(f'{driver["driverID"]}: Route optimised successfully.')
 
+        
     
 
     # Step 7: Prepare final results

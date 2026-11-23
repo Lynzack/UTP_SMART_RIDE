@@ -71,6 +71,7 @@ def generate_compatibility_matrix():
                         result["detour_percentage"]
                     )
 
+                    
                 except Exception as error:
                     print(
                         f'Error: {driver["driverID"]} - '

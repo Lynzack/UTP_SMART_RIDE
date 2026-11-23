@@ -1,27 +1,25 @@
 @echo off
+setlocal
 
 echo ======================================
 echo       UTP SMART RIDE SYSTEM
 echo ======================================
-
 echo.
-echo Activating virtual environment...
 
-call venv\Scripts\activate.bat
+if exist venv\Scripts\activate.bat (
+    echo Activating virtual environment...
+    call venv\Scripts\activate.bat
+)
 
-echo.
-echo Checking Flask installation...
-
+echo Checking Python dependencies...
 python -m pip show flask >nul 2>&1
-
 if errorlevel 1 (
-    echo Flask not found. Installing Flask...
-    python -m pip install flask
+    echo Installing project requirements...
+    python -m pip install -r requirements.txt
 )
 
 echo.
-echo Starting SmartRide web server...
-
+echo Starting Smart Ride web server...
 python backend\server.py
 
 pause

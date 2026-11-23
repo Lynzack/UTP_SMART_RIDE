@@ -1,19 +1,188 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Smart Ride | UTP</title><link rel="stylesheet" href="styles.css"></head>
-<body><aside class="sidebar" id="sidebar"><a class="brand"><b>S</b><span><strong>smart ride</strong><small>UTP carpooling</small></span></a>
-<p class="side-label">WORKSPACE</p><nav>
-<button class="nav active" data-view="dashboard">Overview</button><button class="nav" data-view="matches">Matching results</button><button class="nav" data-view="rides">Ride assignments</button><button class="nav" data-view="locations">UTP locations</button></nav>
-<div class="side-bottom"><span class="dot"></span><span><strong>Matching engine</strong><small id="engine-status">Checking connection...</small></span></div></aside>
-<main><header><button id="menu" class="menu">☰</button><span>Workspace / <b id="page-name">Overview</b></span><div><span class="campus">UTP · Malaysia</span><button id="refresh" class="refresh">↻</button></div></header>
-<section class="view active" id="dashboard"><div class="heading"><div><p class="eyebrow">SMART RIDE MATCHING SYSTEM</p><h1>Good day.</h1><p class="muted">A clearer view of your campus carpooling activity.</p></div><button class="primary" id="run">↻ &nbsp;Run matching</button></div>
-<div id="notice" class="notice"></div><div class="stats">
-<article><label>Total drivers</label><strong id="drivers">—</strong><small>Available driver records</small></article><article><label>Passengers</label><strong id="passengers">—</strong><small>Passenger requests received</small></article><article><label>Passengers matched</label><strong id="assigned">—</strong><small id="rate">Awaiting results</small></article><article><label>Unassigned</label><strong id="unassigned">—</strong><small>Requests without an allocation</small></article></div>
-<div class="columns"><article class="panel"><div class="panel-head"><div><h2>Matching overview</h2><p>Passenger allocation from the latest GA run</p></div><span class="tag" id="status">No data</span></div><div class="big-percent" id="percent">0%</div><p class="muted">of passengers assigned</p><div class="track"><i id="bar"></i></div><div class="metric"><span>Best fitness score</span><b id="fitness">—</b></div><div class="metric"><span>Generations completed</span><b id="generations">—</b></div></article>
-<article class="panel sustainability"><div class="panel-head"><div><h2>Shared journeys</h2><p>More efficient campus travel</p></div><span class="tag lime">Sustainability</span></div><div class="illustration"><span>↗</span><b>SMART RIDE</b></div><h2 id="shared">— passengers matched</h2><p class="muted">Passengers allocated to a driver through the current matching result.</p><div class="sustain-note">Sharing a ride can reduce the number of individual trips around campus.</div></article></div>
-<article class="panel table-panel"><div class="panel-head"><div><h2>Ride assignments</h2><p>Drivers and their assigned passengers</p></div><button class="link" data-go="rides">View all →</button></div><div class="scroll"><table><thead><tr><th>Driver</th><th>Passengers</th><th>Seats available</th><th>Status</th></tr></thead><tbody id="summary"><tr><td colspan="4">No results loaded yet.</td></tr></tbody></table></div></article></section>
-<section class="view" id="matches"><div class="heading"><div><p class="eyebrow">FUZZY LOGIC + GENETIC ALGORITHM</p><h1>Matching results</h1><p class="muted">Review compatibility scores and GA allocations.</p></div></div><div class="filters"><input id="match-search" placeholder="Search driver or passenger ID"><select id="match-filter"><option value="all">All assignments</option><option value="matched">With passengers</option><option value="empty">No passengers</option></select></div><article class="panel table-panel"><div class="scroll"><table><thead><tr><th>Driver</th><th>Passenger</th><th>Compatibility</th><th>Match quality</th></tr></thead><tbody id="match-table"></tbody></table></div></article><p class="footnote">Compatibility values are fuzzy-logic scores, not probability percentages.</p></section>
-<section class="view" id="rides"><div class="heading"><div><p class="eyebrow">OPTIMISED ALLOCATION</p><h1>Ride assignments</h1><p class="muted">Passengers grouped under each driver.</p></div></div><input class="search" id="ride-search" placeholder="Search driver or passenger ID"><div class="ride-grid" id="ride-grid"></div></section>
-<section class="view" id="locations"><div class="heading"><div><p class="eyebrow">CAMPUS DIRECTORY</p><h1>UTP locations</h1><p class="muted">Location options used by the current dataset.</p></div></div><div class="location-grid" id="location-grid"></div><p class="footnote">Loaded from dataset/location.csv through the backend API.</p></section>
-<footer>Smart Ride · UTP Carpooling <span>Fuzzy Logic · Genetic Algorithm · OSRM</span></footer></main>
-<script src="js/data.js"></script><script src="js/api.js"></script><script src="js/app.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1F3DA1">
+  <title>Smart Ride | UTP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#" data-go="home">
+      <span class="brand-mark">S</span>
+      <span><strong>smart ride</strong><small>UTP carpooling</small></span>
+    </a>
+    <div class="side-caption">STUDENT SPACE</div>
+    <nav class="navigation">
+      <button class="nav active" data-view="home"><span>⌂</span> Overview</button>
+      <button class="nav" data-view="find"><span>⌕</span> Find a Ride</button>
+      <button class="nav" data-view="offer"><span>＋</span> Offer a Ride</button>
+    </nav>
+    <div class="side-caption section-caption">AI SYSTEM</div>
+    <nav class="navigation">
+      <button class="nav" data-view="matching"><span>✳</span> Matching Results</button>
+      <button class="nav" data-view="routes"><span>⌁</span> Route Maps</button>
+      <button class="nav" data-view="locations"><span>◎</span> Campus Locations</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="status-indicator" id="status-indicator"></div>
+      <div><strong>AI matching engine</strong><small id="engine-status">Connecting to backend…</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="mobile-menu" id="menu" aria-label="Open navigation">☰</button>
+      <div class="breadcrumbs">Smart Ride <span>/</span> <strong id="page-name">Overview</strong></div>
+      <div class="topbar-right"><span class="campus-pill">UTP · Seri Iskandar</span><span class="student-avatar">S</span></div>
+    </header>
+
+    <div class="global-notice" id="global-notice" role="status"></div>
+
+    <!-- HOME / STUDENT LANDING -->
+    <section class="view active" id="home">
+      <section class="welcome-hero">
+        <div class="hero-copy">
+          <p class="eyebrow light">A SMARTER WAY TO MOVE AROUND UTP</p>
+          <h1>Your journey,<br><em>shared.</em></h1>
+          <p class="hero-description">Going the same way? Connect with fellow UTP students, share a ride and make every journey count.</p>
+          <div class="hero-actions">
+            <button class="button button-lime" data-go="find">Find a Ride <span>↗</span></button>
+            <button class="button button-outline" data-go="offer">Offer a Ride <span>＋</span></button>
+          </div>
+          <p class="hero-footnote">Student experience preview · Demo submissions only</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="sun-disc"></div>
+          <div class="road"><span></span></div>
+          <div class="car-illustration"><div class="car-window"></div><div class="car-wheel wheel-left"></div><div class="car-wheel wheel-right"></div></div>
+          <div class="floating-tag tag-campus">⌖ &nbsp; UTP CAMPUS</div>
+          <div class="floating-tag tag-share">↗ &nbsp; SHARE THE RIDE</div>
+        </div>
+      </section>
+
+      <div class="section-intro">
+        <div><p class="eyebrow">START YOUR JOURNEY</p><h2>How would you like to travel?</h2><p class="muted">Choose the experience that suits your journey.</p></div>
+      </div>
+      <div class="journey-cards">
+        <article class="journey-card passenger-card">
+          <div class="journey-icon">⌕</div><span class="card-kicker">FOR PASSENGERS</span>
+          <h3>Looking for a ride?</h3><p>Enter your pickup point, destination and preferred travel time.</p>
+          <button class="text-action" data-go="find">Find a Ride <span>→</span></button>
+          <div class="card-decoration passenger-decoration">01</div>
+        </article>
+        <article class="journey-card driver-card">
+          <div class="journey-icon">↗</div><span class="card-kicker">FOR DRIVERS</span>
+          <h3>Have extra seats?</h3><p>Share your route and let other students know you have space.</p>
+          <button class="text-action" data-go="offer">Offer a Ride <span>→</span></button>
+          <div class="card-decoration driver-decoration">02</div>
+        </article>
+        <article class="journey-card ai-card">
+          <div class="journey-icon">✳</div><span class="card-kicker">POWERED BY AI</span>
+          <h3>See the smart matching.</h3><p>Explore the actual assignments generated from the project's existing dataset.</p>
+          <button class="text-action" data-go="matching">View Matching Results <span>→</span></button>
+          <div class="card-decoration ai-decoration">AI</div>
+        </article>
+      </div>
+
+      <section class="demo-explainer">
+        <div class="explainer-icon">i</div>
+        <div><strong>About this prototype</strong><p>Find a Ride and Offer a Ride demonstrate the student journey. Their submissions are temporary demo entries and are not added to the CSV dataset. AI Matching runs separately using the existing backend dataset.</p></div>
+        <button class="subtle-action" data-go="matching">Explore AI results →</button>
+      </section>
+    </section>
+
+    <!-- FIND A RIDE -->
+    <section class="view" id="find">
+      <div class="page-heading"><div><p class="eyebrow">PASSENGER EXPERIENCE</p><h1>Find a Ride</h1><p class="muted">Tell us where you're heading. We'll show you what a ride request looks like.</p></div><div class="heading-symbol blue-symbol">⌕</div></div>
+      <div class="form-layout">
+        <form class="ride-form" id="find-form">
+          <div class="form-title"><span class="step-number">01</span><div><h2>Your journey details</h2><p>Fill in your preferred pickup and drop-off details.</p></div></div>
+          <div class="form-grid">
+            <label class="field full"><span>Your name</span><input name="studentName" placeholder="e.g. Aina" required maxlength="60"></label>
+            <label class="field full"><span>Pickup location</span><select name="pickup" class="location-select" required><option value="">Select pickup location</option></select></label>
+            <label class="field full"><span>Destination</span><select name="destination" class="location-select" required><option value="">Select destination</option></select></label>
+            <label class="field"><span>Travel date</span><input type="date" name="date" required></label>
+            <label class="field"><span>Preferred time</span><input type="time" name="time" required></label>
+            <label class="field full"><span>Additional note <small>Optional</small></span><textarea name="note" rows="3" placeholder="Any details you'd like to include?"></textarea></label>
+          </div>
+          <div class="form-disclaimer"><span>ⓘ</span><p>This is a demonstration form. Your entry will not be sent to the AI matching engine or stored in the project dataset.</p></div>
+          <button class="button button-blue submit-button" type="submit">Submit Demo Request <span>→</span></button>
+        </form>
+        <aside class="form-aside blue-aside">
+          <div class="aside-illustration">⌖</div><p class="eyebrow light">YOUR RIDE STARTS HERE</p><h3>Every shared journey starts with a simple request.</h3><p>In a complete Smart Ride system, your request would be compared with available drivers based on route and time compatibility.</p>
+          <div class="aside-mini"><span>01</span> Enter your journey <span>02</span> Find a compatible ride</div>
+        </aside>
+      </div>
+      <div class="confirmation-panel" id="find-confirmation" hidden></div>
+    </section>
+
+    <!-- OFFER A RIDE -->
+    <section class="view" id="offer">
+      <div class="page-heading"><div><p class="eyebrow">DRIVER EXPERIENCE</p><h1>Offer a Ride</h1><p class="muted">Already driving somewhere? Let fellow students know you have extra seats.</p></div><div class="heading-symbol green-symbol">↗</div></div>
+      <div class="form-layout">
+        <form class="ride-form" id="offer-form">
+          <div class="form-title"><span class="step-number green-step">01</span><div><h2>Your ride details</h2><p>Share your route and the number of seats available.</p></div></div>
+          <div class="form-grid">
+            <label class="field full"><span>Your name</span><input name="studentName" placeholder="e.g. Aina" required maxlength="60"></label>
+            <label class="field full"><span>Starting location</span><select name="pickup" class="location-select" required><option value="">Select starting location</option></select></label>
+            <label class="field full"><span>Destination</span><select name="destination" class="location-select" required><option value="">Select destination</option></select></label>
+            <label class="field"><span>Travel date</span><input type="date" name="date" required></label>
+            <label class="field"><span>Departure time</span><input type="time" name="time" required></label>
+            <label class="field full"><span>Available passenger seats</span><select name="seats" required><option value="">Select available seats</option><option value="1">1 seat</option><option value="2">2 seats</option><option value="3">3 seats</option><option value="4">4 seats</option><option value="5">5 seats</option><option value="6">6 seats</option></select></label>
+            <label class="field full"><span>Additional note <small>Optional</small></span><textarea name="note" rows="3" placeholder="Any details you'd like to include?"></textarea></label>
+          </div>
+          <div class="form-disclaimer green-disclaimer"><span>ⓘ</span><p>This is a demonstration form. Your entry will not be sent to the AI matching engine or stored in the project dataset.</p></div>
+          <button class="button button-blue submit-button" type="submit">Submit Demo Offer <span>→</span></button>
+        </form>
+        <aside class="form-aside green-aside">
+          <div class="aside-illustration">＋</div><p class="eyebrow">MAKE ROOM FOR ANOTHER</p><h3>A few extra seats can make a difference.</h3><p>In a complete Smart Ride system, your offered route and available seats would be considered during the matching process.</p>
+          <div class="aside-mini"><span>01</span> Share your route <span>02</span> Match with passengers</div>
+        </aside>
+      </div>
+      <div class="confirmation-panel" id="offer-confirmation" hidden></div>
+    </section>
+
+    <!-- MATCHING RESULTS -->
+    <section class="view" id="matching">
+      <div class="page-heading heading-with-button"><div><p class="eyebrow">FUZZY LOGIC + GENETIC ALGORITHM</p><h1>Matching Results</h1><p class="muted">Actual driver-passenger assignments generated from your existing dataset.</p></div><button class="button button-blue" id="run-matching">↻ &nbsp;Run AI Matching</button></div>
+      <div class="backend-callout"><span class="callout-icon">✳</span><div><strong>Real backend processing</strong><p>The algorithm reads the existing CSV records, calculates compatibility, runs the Genetic Algorithm and optimises routes. Demo form entries are not included.</p></div></div>
+      <div class="results-stats">
+        <article class="result-stat stat-blue"><span>Total drivers</span><strong id="total-drivers">—</strong><small>Existing driver records</small></article>
+        <article class="result-stat stat-lime"><span>Total passengers</span><strong id="total-passengers">—</strong><small>Existing passenger records</small></article>
+        <article class="result-stat stat-green"><span>Passengers assigned</span><strong id="total-assigned">—</strong><small id="allocation-rate">Awaiting results</small></article>
+        <article class="result-stat stat-soft"><span>Unassigned</span><strong id="total-unassigned">—</strong><small>Without a driver allocation</small></article>
+      </div>
+      <div class="results-layout">
+        <article class="content-card allocation-card"><div class="content-card-heading"><div><p class="eyebrow">ALLOCATION OVERVIEW</p><h2>Passenger coverage</h2></div><span class="live-tag" id="result-status">No results loaded</span></div><div class="allocation-number" id="allocation-percent">—<small>%</small></div><div class="progress-track"><span id="allocation-bar"></span></div><div class="result-meta"><span>Best fitness score</span><strong id="best-fitness">—</strong></div><div class="result-meta"><span>Generations completed</span><strong id="generation-count">—</strong></div></article>
+        <article class="content-card unassigned-card"><p class="eyebrow">NEEDS AN ALTERNATIVE</p><h2>Unassigned passengers</h2><p class="muted">These passengers were not allocated to a driver in the latest GA result.</p><div class="unassigned-list" id="unassigned-list">No results loaded.</div></article>
+      </div>
+      <article class="content-card assignment-table-card"><div class="content-card-heading"><div><p class="eyebrow">GENERATED BY THE GA</p><h2>Driver assignments</h2></div><input class="table-search" id="assignment-search" placeholder="Search driver / passenger"></div><div class="table-wrap"><table><thead><tr><th>Driver</th><th>Assigned passengers</th><th>Compatibility</th><th>Seats available</th><th>Allocation</th></tr></thead><tbody id="assignment-table"><tr><td colspan="5">Load results or run AI matching.</td></tr></tbody></table></div></article>
+    </section>
+
+    <!-- ROUTE MAPS -->
+    <section class="view" id="routes">
+      <div class="page-heading"><div><p class="eyebrow">OSRM ROUTE OPTIMISATION</p><h1>Route Maps</h1><p class="muted">Explore the original driver route and the optimised carpool route generated by Folium.</p></div><button class="button button-light" data-go="matching">View matching results →</button></div>
+      <div class="map-legend"><span><i class="legend-blue"></i> Original driver route</span><span><i class="legend-red"></i> Optimised carpool route</span><span><i class="legend-green"></i> Driver origin</span><span><i class="legend-purple"></i> Passenger drop-off</span></div>
+      <div id="route-list" class="route-list"><div class="empty-state"><div>⌁</div><h3>No route maps loaded</h3><p>Load existing results or run AI Matching to generate route maps.</p><button class="button button-blue" data-go="matching">Go to AI Matching</button></div></div>
+    </section>
+
+    <!-- LOCATIONS -->
+    <section class="view" id="locations">
+      <div class="page-heading"><div><p class="eyebrow">CAMPUS DIRECTORY</p><h1>Campus Locations</h1><p class="muted">Locations available in the current Smart Ride dataset.</p></div></div>
+      <div class="location-intro"><div class="location-pin">◎</div><div><strong>UTP location directory</strong><p>Location options are retrieved from <code>dataset/location.csv</code> through the backend API.</p></div></div>
+      <div class="location-grid" id="location-grid"><div class="empty-state">Loading campus locations…</div></div>
+    </section>
+
+    <footer class="footer"><span>Smart Ride · UTP Carpooling Prototype</span><span>Fuzzy Logic · Genetic Algorithm · OSRM</span></footer>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

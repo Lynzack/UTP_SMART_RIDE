@@ -41,6 +41,13 @@ def get_results():
 
     return jsonify(results)
 
+# Serve generated Folium route maps
+@app.route("/api/maps/<path:filename>", methods=["GET"])
+def get_route_map(filename):
+    return send_from_directory(
+        BASE_DIR / "route_maps",
+        filename
+    )
 
 # Run the existing matching algorithm
 @app.route("/api/run-matching", methods=["POST"])

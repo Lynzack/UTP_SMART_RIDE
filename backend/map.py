@@ -2,14 +2,21 @@
 import folium
 from OSRM import get_route
 
+from pathlib import Path
 
-def visualize_optimized_route(driver, passengers, optimized_route):
+BASE_DIR = Path(__file__).resolve().parent
+MAP_DIR = BASE_DIR / "route_maps"
+MAP_DIR.mkdir(exist_ok=True)
+
+def visualize_optimized_route(driver, passengers, optimized_route, original_route=None):
 
     driver_start = driver["startPoint"]
     driver_destination = driver["Destination"]
 
-    # Get driver's original route (without passengers)
-    original_route = get_route(driver_start, driver_destination)
+    # Reuse the original route calculated by main.py when provided.
+    # This avoids making the same OSRM request twice.
+    if original_route is None:
+        original_route = get_route(driver_start, driver_destination)
 
     # Create map
     route_map = folium.Map(
@@ -121,10 +128,14 @@ def visualize_optimized_route(driver, passengers, optimized_route):
 
     route_map.fit_bounds(all_coordinates)
 
-    route_map.save(
-        f"optimized_carpool_route_{driver['driverID']}.html"
-    )
+    map_filename = f"optimized_carpool_route_{driver['driverID']}.html"
+
+    map_path = MAP_DIR / map_filename
+
+    route_map.save(str(map_path))
 
     print("Optimised carpool map saved successfully!")
+
+    return map_filename
 
 
