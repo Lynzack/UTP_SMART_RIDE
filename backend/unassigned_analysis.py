@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from OSRM import get_all_drivers, get_all_passengers
-from compatibility_matrix import generate_compatibility_matrix
+from compatibility_matrix import get_compatibility_matrix
 from eligibility import is_eligible
 
 
@@ -20,7 +20,7 @@ all_passengers = get_all_passengers()
 
 # Generate compatibility matrix
 print("Generating compatibility matrix...")
-matrix = generate_compatibility_matrix()
+matrix = get_compatibility_matrix()
 
 
 # Identify unassigned passengers
@@ -64,6 +64,7 @@ for passenger_index, passenger in enumerate(all_passengers):
         eligible_drivers.append(driver["driverID"])
 
         score = matrix[driver_index][passenger_index]
+        print(f"  {driver['driverID']} compatibility score: {score:.2f}")
 
         if score >= 50:
             compatible_drivers.append(
@@ -92,7 +93,7 @@ for passenger_index, passenger in enumerate(all_passengers):
         reason = "No eligible drivers"
 
     elif not compatible_drivers:
-        reason = "Compatibility scores below 60"
+        reason = "Compatibility scores below 50"
 
     elif not available_drivers:
         reason = "Suitable drivers have no remaining seats"
@@ -101,3 +102,4 @@ for passenger_index, passenger in enumerate(all_passengers):
         reason = "Alternative compatible drivers exist but were not selected by GA"
 
     print("\nPossible reason:", reason)
+
